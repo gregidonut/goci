@@ -1,12 +1,22 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 )
 
 func main() {
+	// parsing the only flag tool accepts
+	proj := flag.String("p", "", "Project directory")
+	flag.Parsed()
+
+	if err := run(*proj, os.Stdout); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 }
 
