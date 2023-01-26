@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"os/exec"
 )
 
 func main() {
@@ -15,5 +16,15 @@ func run(proj string, w io.Writer) error {
 	if proj == "" {
 		return fmt.Errorf("project directory is required")
 	}
-	return nil
+
+	args := []string{"build", ".", "errors"}
+	cmd := exec.Command("go", args...)
+
+	cmd.Dir = proj
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("'go build failed %s", err)
+	}
+
+	_, err := fmt.Fprintln(w, "Go Build: SUCCESS")
+	return err
 }
