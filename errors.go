@@ -18,3 +18,11 @@ type stepErr struct {
 func (s *stepErr) Error() string {
 	return fmt.Sprintf("Step: %q: %s: Cause: %v", s.step, s.msg, s.cause)
 }
+
+func (s *stepErr) Is(target error) bool {
+	t, ok := target.(*stepErr)
+	if !ok {
+		return false
+	}
+	return t.step == s.step
+}
