@@ -26,3 +26,7 @@ func (s *stepErr) Is(target error) bool {
 	}
 	return t.step == s.step
 }
+
+func (s *stepErr) Unwrap() error {
+	return s.cause
+}
