@@ -32,7 +32,11 @@ func run(proj string, w io.Writer) error {
 
 	cmd.Dir = proj
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("'go build failed %s", err)
+		return &stepErr{
+			step:  "go build",
+			msg:   "go build failed",
+			cause: err,
+		}
 	}
 
 	_, err := fmt.Fprintln(w, "Go Build: SUCCESS")
