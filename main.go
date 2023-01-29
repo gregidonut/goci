@@ -10,7 +10,7 @@ import (
 func main() {
 	// parsing the only flag tool accepts
 	proj := flag.String("p", "", "Project directory")
-	flag.Parsed()
+	flag.Parse()
 
 	if err := run(*proj, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, err)
