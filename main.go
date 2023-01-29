@@ -27,7 +27,7 @@ func run(proj string, w io.Writer) error {
 		return fmt.Errorf("project directory is required: %w", ErrValidation)
 	}
 
-	pipeline := make([]step.Executor, 3)
+	pipeline := make([]step.Executable, 3)
 
 	pipeline[0] = step.NewStep(
 		"go build",

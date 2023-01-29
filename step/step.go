@@ -4,7 +4,7 @@ import (
 	"os/exec"
 )
 
-type Executor interface {
+type Executable interface {
 	Execute() (string, error)
 }
 
