@@ -6,6 +6,7 @@ import (
 	"github.com/gregidonut/goci/step"
 	"io"
 	"os"
+	"time"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func run(proj string, w io.Writer) error {
 		return fmt.Errorf("project directory is required: %w", ErrValidation)
 	}
 
-	pipeline := make([]step.Executable, 3)
+	pipeline := make([]step.Executable, 4)
 
 	pipeline[0] = step.NewStep(
 		"go build",
@@ -49,6 +50,15 @@ func run(proj string, w io.Writer) error {
 		"Gofmt: SUCCESS",
 		proj,
 		[]string{"-l", "."},
+	)
+
+	pipeline[3] = step.NewTimeoutStep(
+		"git push",
+		"git",
+		"Git Push: SUCCESS",
+		proj,
+		[]string{"push", "origin", "main"},
+		10*time.Second,
 	)
 
 	for _, s := range pipeline {
