@@ -1,4 +1,4 @@
-package main
+package step
 
 import (
 	"bytes"
@@ -13,14 +13,14 @@ type exceptionStep struct {
 	step
 }
 
-func newExceptionStep(name, exe, message, proj string, args []string) exceptionStep {
+func NewExceptionStep(name, exe, message, proj string, args []string) exceptionStep {
 	var s exceptionStep
 
-	s.step = newStep(name, exe, message, proj, args)
+	s.step = NewStep(name, exe, message, proj, args)
 	return s
 }
 
-func (s exceptionStep) execute() (string, error) {
+func (s exceptionStep) Execute() (string, error) {
 	cmd := exec.Command(s.exe, s.args...)
 
 	w := &bytes.Buffer{}
@@ -31,7 +31,7 @@ func (s exceptionStep) execute() (string, error) {
 	if err := cmd.Run(); err != nil {
 		return "", &stepErr{
 			step:  s.name,
-			msg:   "failed to execute",
+			msg:   "failed to Execute",
 			cause: err,
 		}
 	}

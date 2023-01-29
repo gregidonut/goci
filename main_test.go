@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"github.com/gregidonut/goci/step"
 	"testing"
 )
 
@@ -23,13 +24,13 @@ func Test_run(t *testing.T) {
 			name:    "Fail",
 			proj:    "./testdata/toolErr/",
 			wantOut: "",
-			wantErr: &stepErr{step: "go build"},
+			wantErr: step.NewStepErr("go build", "", nil),
 		},
 		{
 			name:    "FailFormat",
 			proj:    "./testdata/toolFmtErr/",
 			wantOut: "",
-			wantErr: &stepErr{step: "go fmt"},
+			wantErr: step.NewStepErr("go fmt", "", nil),
 		},
 	}
 

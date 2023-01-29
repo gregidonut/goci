@@ -1,6 +1,12 @@
-package main
+package step
 
-import "os/exec"
+import (
+	"os/exec"
+)
+
+type Executor interface {
+	Execute() (string, error)
+}
 
 // step represents the information of the CI step that is currently executing
 type step struct {
@@ -11,8 +17,8 @@ type step struct {
 	proj    string
 }
 
-// newStep is a constructor function for step
-func newStep(name, exe, message, proj string, args []string) step {
+// NewStep is a constructor function for step
+func NewStep(name, exe, message, proj string, args []string) step {
 	return step{
 		name:    name,
 		exe:     exe,
@@ -22,15 +28,15 @@ func newStep(name, exe, message, proj string, args []string) step {
 	}
 }
 
-// execute is a step method that will run the command defined in the step
-func (s step) execute() (string, error) {
+// Execute is a step method that will run the command defined in the step
+func (s step) Execute() (string, error) {
 	cmd := exec.Command(s.exe, s.args...)
 	cmd.Dir = s.proj
 
 	if err := cmd.Run(); err != nil {
 		return "", &stepErr{
 			step:  s.name,
-			msg:   "failed to execute",
+			msg:   "failed to Execute",
 			cause: err,
 		}
 	}

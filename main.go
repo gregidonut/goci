@@ -3,13 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/gregidonut/goci/step"
 	"io"
 	"os"
 )
-
-type stepExecutor interface {
-	execute() (string, error)
-}
 
 func main() {
 	// parsing the only flag tool accepts
@@ -30,23 +27,23 @@ func run(proj string, w io.Writer) error {
 		return fmt.Errorf("project directory is required: %w", ErrValidation)
 	}
 
-	pipeline := make([]stepExecutor, 3)
+	pipeline := make([]step.Executor, 3)
 
-	pipeline[0] = newStep(
+	pipeline[0] = step.NewStep(
 		"go build",
 		"go",
 		"Go Build: SUCCESS",
 		proj,
 		[]string{"build", ".", "errors"},
 	)
-	pipeline[1] = newStep(
+	pipeline[1] = step.NewStep(
 		"go test",
 		"go",
 		"Go Test: SUCCESS",
 		proj,
 		[]string{"test", "-v"},
 	)
-	pipeline[2] = newExceptionStep(
+	pipeline[2] = step.NewExceptionStep(
 		"go fmt",
 		"gofmt",
 		"Gofmt: SUCCESS",
@@ -55,7 +52,7 @@ func run(proj string, w io.Writer) error {
 	)
 
 	for _, s := range pipeline {
-		msg, err := s.execute()
+		msg, err := s.Execute()
 		if err != nil {
 			return err
 		}

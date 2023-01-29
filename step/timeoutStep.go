@@ -1,4 +1,4 @@
-package main
+package step
 
 import (
 	"context"
@@ -14,21 +14,21 @@ type timeoutStep struct {
 	timeout time.Duration
 }
 
-// newTimeoutStep is the accompanying constructor for timeout step
+// NewTimeoutStep is the accompanying constructor for timeout step
 // as with all step types
-func newTimeoutStep(name, exe, message, proj string, args []string, timeout time.Duration) timeoutStep {
+func NewTimeoutStep(name, exe, message, proj string, args []string, timeout time.Duration) timeoutStep {
 	var s timeoutStep
 
-	s.step = newStep(name, exe, message, proj, args)
+	s.step = NewStep(name, exe, message, proj, args)
 	s.timeout = timeout
 
 	return s
 }
 
-// execute is an implementation of the stepExecutor interface's requirement
+// Execute is an implementation of the stepExecutor interface's requirement
 // which with timeoutStep, uses the timeout field as timeout argument to a
 // context.WithTimeout function.
-func (s timeoutStep) execute() (string, error) {
+func (s timeoutStep) Execute() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
@@ -48,7 +48,7 @@ func (s timeoutStep) execute() (string, error) {
 		// then return that error instead
 		return "", &stepErr{
 			step:  s.name,
-			msg:   "failed to execute",
+			msg:   "failed to Execute",
 			cause: err,
 		}
 	}
