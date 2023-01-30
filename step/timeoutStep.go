@@ -21,7 +21,9 @@ func NewTimeoutStep(name, exe, message, proj string, args []string, timeout time
 
 	s.step = NewStep(name, exe, message, proj, args)
 	s.timeout = timeout
-
+	if s.timeout == 0 {
+		s.timeout = 30 * time.Second
+	}
 	return s
 }
 
