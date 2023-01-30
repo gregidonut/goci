@@ -15,9 +15,13 @@ func Test_run(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "Success",
-			proj:    "./testdata/tool/",
-			wantOut: "Go Build: SUCCESS\nGo Test: SUCCESS\nGofmt: SUCCESS\n",
+			name: "Success",
+			proj: "./testdata/tool/",
+			wantOut: `Go Build: SUCCESS
+Go Test: SUCCESS
+Gofmt: SUCCESS
+Git Push: SUCCESS
+`,
 			wantErr: nil,
 		},
 		{
