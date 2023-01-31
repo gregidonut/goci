@@ -27,6 +27,8 @@ func NewTimeoutStep(name, exe, message, proj string, args []string, timeout time
 	return s
 }
 
+var Command = exec.CommandContext
+
 // Execute is an implementation of the stepExecutor interface's requirement
 // which with timeoutStep, uses the timeout field as timeout argument to a
 // context.WithTimeout function.
@@ -34,7 +36,7 @@ func (s timeoutStep) Execute() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, s.exe, s.args...)
+	cmd := Command(ctx, s.exe, s.args...)
 	cmd.Dir = s.proj
 
 	if err := cmd.Run(); err != nil {
