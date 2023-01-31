@@ -13,10 +13,11 @@ import (
 
 func Test_run(t *testing.T) {
 	tests := []struct {
-		name    string
-		proj    string
-		wantOut string
-		wantErr error
+		name     string
+		proj     string
+		wantOut  string
+		wantErr  error
+		setupGit bool
 	}{
 		{
 			name: "Success",
@@ -26,24 +27,32 @@ Go Test: SUCCESS
 Gofmt: SUCCESS
 Git Push: SUCCESS
 `,
-			wantErr: nil,
+			wantErr:  nil,
+			setupGit: true,
 		},
 		{
-			name:    "Fail",
-			proj:    "./testdata/toolErr/",
-			wantOut: "",
-			wantErr: step.NewStepErr("go build", "", nil),
+			name:     "Fail",
+			proj:     "./testdata/toolErr/",
+			wantOut:  "",
+			wantErr:  step.NewStepErr("go build", "", nil),
+			setupGit: false,
 		},
 		{
-			name:    "FailFormat",
-			proj:    "./testdata/toolFmtErr/",
-			wantOut: "",
-			wantErr: step.NewStepErr("go fmt", "", nil),
+			name:     "FailFormat",
+			proj:     "./testdata/toolFmtErr/",
+			wantOut:  "",
+			wantErr:  step.NewStepErr("go fmt", "", nil),
+			setupGit: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.setupGit {
+				cleanup := setupGit(t, tt.proj)
+				defer cleanup()
+			}
+
 			w := bytes.Buffer{}
 			err := run(tt.proj, &w)
 
