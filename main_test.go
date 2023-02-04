@@ -20,6 +20,7 @@ func Test_run(t *testing.T) {
 		wantOut  string
 		wantErr  error
 		setupGit bool
+		mockCmd  func(ctx context.Context, name string, arg ...string) *exec.Cmd
 	}{
 		{
 			name: "Success",
@@ -31,6 +32,19 @@ Git Push: SUCCESS
 `,
 			wantErr:  nil,
 			setupGit: true,
+			mockCmd:  nil,
+		},
+		{
+			name: "Success",
+			proj: "./testdata/tool/",
+			wantOut: `Go Build: SUCCESS
+Go Test: SUCCESS
+Gofmt: SUCCESS
+Git Push: SUCCESS
+`,
+			wantErr:  nil,
+			setupGit: true,
+			mockCmd:  mockCmdContext,
 		},
 		{
 			name:     "Fail",
@@ -38,6 +52,7 @@ Git Push: SUCCESS
 			wantOut:  "",
 			wantErr:  step.NewStepErr("go build", "", nil),
 			setupGit: false,
+			mockCmd:  nil,
 		},
 		{
 			name:     "FailFormat",
@@ -45,6 +60,15 @@ Git Push: SUCCESS
 			wantOut:  "",
 			wantErr:  step.NewStepErr("go fmt", "", nil),
 			setupGit: false,
+			mockCmd:  nil,
+		},
+		{
+			name:     "FailTimeout",
+			proj:     "./testdata/tool/",
+			wantOut:  "",
+			wantErr:  context.DeadlineExceeded,
+			setupGit: false,
+			mockCmd:  mockCmdTimeout,
 		},
 	}
 
@@ -57,6 +81,10 @@ Git Push: SUCCESS
 
 				cleanup := setupGit(t, tt.proj)
 				defer cleanup()
+			}
+
+			if tt.mockCmd != nil {
+				step.Command = tt.mockCmd
 			}
 
 			w := bytes.Buffer{}
