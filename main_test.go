@@ -51,6 +51,10 @@ Git Push: SUCCESS
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setupGit {
+				if _, err := exec.LookPath("git"); err != nil {
+					t.Skip("Git not installed. skipping test.")
+				}
+
 				cleanup := setupGit(t, tt.proj)
 				defer cleanup()
 			}
