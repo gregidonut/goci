@@ -6,6 +6,8 @@ import (
 	"github.com/gregidonut/goci/step"
 	"io"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -61,16 +63,45 @@ func run(proj string, w io.Writer) error {
 		10*time.Second,
 	)
 
-	for _, s := range pipeline {
-		msg, err := s.Execute()
-		if err != nil {
-			return err
-		}
+	// prepare to handle at least one signal correctly
+	sig := make(chan os.Signal, 1)
 
-		if _, err = fmt.Fprintln(w, msg); err != nil {
+	// generic concurrency pattern for error propagation
+	// and done channel to be used when business logic is
+	// complete
+	errCh := make(chan error)
+	done := make(chan struct{})
+
+	// pass to sig chanel variable a notification if a sigint(when
+	// ctrl+c is pressed) or a sigterm(when the kill command is used)
+	// is received, all other signals are ignored
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		for _, s := range pipeline {
+			msg, err := s.Execute()
+			if err != nil {
+				errCh <- err
+				return
+			}
+
+			if _, err = fmt.Fprintln(w, msg); err != nil {
+				errCh <- err
+				return
+			}
+		}
+		close(done)
+	}()
+
+	for {
+		select {
+		case rec := <-sig:
+			signal.Stop(sig)
+			return fmt.Errorf("%s: Exiting: %w", rec, ErrSignal)
+		case err := <-errCh:
 			return err
+		case <-done:
+			return nil
 		}
 	}
-
-	return nil
 }
