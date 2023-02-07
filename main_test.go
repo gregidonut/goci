@@ -6,9 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gregidonut/goci/step"
+	"io"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -174,6 +177,81 @@ func setupGit(t *testing.T, proj string) func() {
 	return func() {
 		os.RemoveAll(tempDir)
 		os.RemoveAll(filepath.Join(projPath, ".git"))
+	}
+}
+
+func TestRunKill(t *testing.T) {
+	tests := []struct {
+		name    string
+		proj    string
+		sig     syscall.Signal
+		wantErr error
+	}{
+		{
+			name:    "SIGINT",
+			proj:    "./testdata/tool",
+			sig:     syscall.SIGINT,
+			wantErr: ErrSignal,
+		},
+		{
+			name:    "SIGTERM",
+			proj:    "./testdata/tool",
+			sig:     syscall.SIGTERM,
+			wantErr: ErrSignal,
+		},
+		{
+			name:    "SIGQUIT",
+			proj:    "./testdata/tool",
+			sig:     syscall.SIGQUIT,
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			step.Command = mockCmdTimeout
+
+			errCh := make(chan error)
+			ignSigCh := make(chan os.Signal, 1)
+			expSigCh := make(chan os.Signal, 1)
+
+			//
+			signal.Notify(ignSigCh, syscall.SIGQUIT)
+			defer signal.Stop(ignSigCh)
+
+			signal.Notify(expSigCh, tt.sig)
+			defer signal.Stop(expSigCh)
+
+			go func() {
+				errCh <- run(tt.proj, io.Discard)
+			}()
+
+			go func() {
+				time.Sleep(2 * time.Second)
+				syscall.Kill(syscall.Getpid(), tt.sig)
+			}()
+
+			select {
+			case err := <-errCh:
+				if err == nil {
+					t.Errorf("want error, got 'nil' instead")
+					return
+				}
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("want error. %q, got %q", tt.wantErr, err)
+					return
+				}
+				select {
+				case rec := <-expSigCh:
+					if rec != tt.sig {
+						t.Errorf("want signal: %q, got %q", tt.sig, rec)
+					}
+				default:
+					t.Errorf("signal not recieved")
+				}
+			case <-ignSigCh:
+			}
+		})
 	}
 }
 
